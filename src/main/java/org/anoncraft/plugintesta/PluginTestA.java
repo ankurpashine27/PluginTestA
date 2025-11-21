@@ -8,6 +8,8 @@ public final class PluginTestA extends JavaPlugin {
     public void onEnable() {
         // Plugin startup logic
         getLogger().info("~~ PluginTestA has been enabled!");
+        //So Server starts Listening to Events here
+        getServer().getPluginManager().registerEvents(new EventListener(), this);
 
     }
 
