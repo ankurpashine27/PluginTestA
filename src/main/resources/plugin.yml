@@ -1,0 +1,4 @@
+name: PluginTestA
+version: '${project.version}'
+main: org.anoncraft.plugintesta.PluginTestA
+api-version: 1.21
