@@ -1,0 +1,12 @@
+transfer:
+  # The backend server name defined in your velocity.toml [servers] section.
+  # Example: survival (from your velocity.toml)
+  target-server: "survival"
+
+mannequin:
+  # tag to look for on the mannequin entity
+  tag: "survival_npc"
+  # distance within which mannequin will look at players (blocks)
+  look-distance: 3.0
+  # maximum degrees per tick mannequin can rotate toward target (lower = slower)
+  degrees-per-tick: 10.0
