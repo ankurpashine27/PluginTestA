@@ -32,6 +32,8 @@ public final class PluginTestA extends JavaPlugin {
                 this
         );
 
+        //Command to remove mannequin NPCs
+        getCommand("removenpc").setExecutor(new CustomCommands());
 
     }
 

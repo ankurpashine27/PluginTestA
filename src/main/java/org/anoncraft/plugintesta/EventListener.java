@@ -17,19 +17,19 @@ public class EventListener implements Listener {
         // Handle the event here
         event.setJoinMessage("Welcome " + event.getPlayer().getName() + " to the server!");
 
-        Firework firework = event.getPlayer().getWorld().spawn(event.getPlayer().getLocation(), Firework.class);
-        // You can customize the firework's effects here if desired
-        FireworkMeta meta = firework.getFireworkMeta();
-        meta.addEffect(FireworkEffect.builder()
-                .withColor(Color.RED)           // Firework color
-                .withFade(Color.GREEN)         // Fade color
-                .with(FireworkEffect.Type.CREEPER) // Firework type
-                .withTrail()                    // Add particle trail
-                .withFlicker()                  // Flicker effect
-                .build());
-
-        meta.setPower(1);
-        firework.setFireworkMeta(meta);
+//        Firework firework = event.getPlayer().getWorld().spawn(event.getPlayer().getLocation(), Firework.class);
+//        // You can customize the firework's effects here if desired
+//        FireworkMeta meta = firework.getFireworkMeta();
+//        meta.addEffect(FireworkEffect.builder()
+//                .withColor(Color.RED)           // Firework color
+//                .withFade(Color.GREEN)         // Fade color
+//                .with(FireworkEffect.Type.CREEPER) // Firework type
+//                .withTrail()                    // Add particle trail
+//                .withFlicker()                  // Flicker effect
+//                .build());
+//
+//        meta.setPower(1);
+//        firework.setFireworkMeta(meta);
     }
 
     @EventHandler

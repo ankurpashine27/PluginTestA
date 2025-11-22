@@ -2,3 +2,7 @@ name: PluginTestA
 version: '${project.version}'
 main: org.anoncraft.plugintesta.PluginTestA
 api-version: 1.21
+
+commands:
+  removenpc:
+    description: Removes a mannequin NPC within 1 block.

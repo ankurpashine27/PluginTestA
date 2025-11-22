@@ -5,7 +5,6 @@ import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -18,7 +17,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Optional;
 
 public class NPCListener implements Listener {
@@ -36,7 +34,7 @@ public class NPCListener implements Listener {
         this.lookDistance = lookDistance;
         this.degreesPerTick = degreesPerTick;
 
-        // Start repeating task to rotate mannequins every tick (1L). You may change to 2L or 3L to reduce load.
+        // rotation loop — 1 tick interval
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -45,14 +43,16 @@ public class NPCListener implements Listener {
         }.runTaskTimer(plugin, 1L, 1L);
     }
 
-    // Make mannequins invulnerable
+    // protect mannequins
     @EventHandler
     public void onMannequinDamage(EntityDamageEvent event) {
         Entity e = event.getEntity();
 
+        // correct detection using registry key
         if (!e.getType().key().equals(NamespacedKey.minecraft("mannequin"))) return;
-        if (!e.getScoreboardTags().contains("survival_npc")) return;
+        if (!e.getScoreboardTags().contains(mannequinTag)) return;
 
+        // cancel all damage
         event.setCancelled(true);
     }
 
@@ -61,36 +61,36 @@ public class NPCListener implements Listener {
     public void onPlayerInteractAtEntity(PlayerInteractAtEntityEvent event) {
         Entity clicked = event.getRightClicked();
         if (clicked == null) return;
-        if (clicked.getType() != EntityType.valueOf("MANNEQUIN")) return;
+
+        // detect mannequin with registry key — FIXED
+        if (!clicked.getType().key().equals(NamespacedKey.minecraft("mannequin"))) return;
 
         if (!clicked.getScoreboardTags().contains(mannequinTag)) return;
 
         Player player = event.getPlayer();
 
-        // transfer player to target server using BungeeCord plugin messaging 'Connect' subchannel
-        sendPlayerToServer(player, targetServer);
-        // optionally send feedback
-        player.sendMessage("§aTransferring you to §e" + targetServer + "§a...");
+        // prevent double triggers
         event.setCancelled(true);
+
+        // transfer to server
+        sendPlayerToServer(player, targetServer);
+        player.sendMessage("§aTransferring you to §e" + targetServer + "§a...");
     }
 
+    // rotation loop
     private void rotateMannequinsTick() {
         for (World world : Bukkit.getWorlds()) {
-            List<Entity> entities = world.getEntities();
-            for (Entity ent : entities) {
-                if (ent.getType() != EntityType.valueOf("MANNEQUIN")) continue;
+
+            for (Entity ent : world.getEntities()) {
+
+                if (!ent.getType().key().equals(NamespacedKey.minecraft("mannequin"))) continue;
                 if (!ent.getScoreboardTags().contains(mannequinTag)) continue;
 
-                // find nearest player within lookDistance
                 Optional<Player> nearest = world.getPlayers().stream()
                         .filter(p -> p.getLocation().distanceSquared(ent.getLocation()) <= (lookDistance * lookDistance))
                         .min(Comparator.comparingDouble(p -> p.getLocation().distanceSquared(ent.getLocation())));
 
-                if (nearest.isPresent()) {
-                    Player p = nearest.get();
-                    smoothFaceEntity(ent, p);
-                }
-                // else: you could set mannequin back to default rotation if you'd like
+                nearest.ifPresent(player -> smoothFaceEntity(ent, player));
             }
         }
     }
@@ -99,54 +99,48 @@ public class NPCListener implements Listener {
         Location mLoc = mannequin.getLocation();
         Location pLoc = player.getLocation();
 
-        // compute direction vector and setDirection to compute target yaw/pitch
         Location tmp = mLoc.clone();
         tmp.setDirection(pLoc.toVector().subtract(mLoc.toVector()));
+
         float targetYaw = tmp.getYaw();
         float targetPitch = tmp.getPitch();
 
-        float currentYaw = mLoc.getYaw();
-        float currentPitch = mLoc.getPitch();
-
-        float newYaw = rotateTowards(currentYaw, targetYaw, (float) degreesPerTick);
-        float newPitch = rotateTowards(currentPitch, targetPitch, (float) degreesPerTick);
+        float newYaw = rotateTowards(mLoc.getYaw(), targetYaw, (float) degreesPerTick);
+        float newPitch = rotateTowards(mLoc.getPitch(), targetPitch, (float) degreesPerTick);
 
         Location newLoc = mLoc.clone();
         newLoc.setYaw(newYaw);
         newLoc.setPitch(newPitch);
 
-        // teleport mannequin to same position but with new yaw/pitch
-        // teleporting only rotation is fine here
         mannequin.teleport(newLoc);
     }
 
-    // rotate current angle towards target by maxDelta degrees, handling angle wrap
     private float rotateTowards(float current, float target, float maxDelta) {
         float delta = wrapAngle(target - current);
         if (Math.abs(delta) <= maxDelta) return target;
-        if (delta > 0) return current + maxDelta;
-        return current - maxDelta;
+        return current + Math.signum(delta) * maxDelta;
     }
 
-    // wrap angle to [-180,180)
-    private float wrapAngle(float a) {
-        a %= 360.0f;
-        if (a >= 180.0f) a -= 360.0f;
-        if (a < -180.0f) a += 360.0f;
-        return a;
+    private float wrapAngle(float angle) {
+        angle %= 360.0f;
+        if (angle >= 180) angle -= 360;
+        if (angle < -180) angle += 360;
+        return angle;
     }
 
-    // Send player to another server via BungeeCord plugin messaging 'Connect' subchannel
     private void sendPlayerToServer(Player player, String server) {
         try {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             DataOutputStream out = new DataOutputStream(bos);
+
             out.writeUTF("Connect");
             out.writeUTF(server);
+
             player.sendPluginMessage(plugin, "BungeeCord", bos.toByteArray());
             out.close();
+
         } catch (IOException e) {
-            plugin.getLogger().warning("Failed to send plugin message for transfer: " + e.getMessage());
+            plugin.getLogger().warning("Failed to send Velocity transfer message: " + e.getMessage());
         }
     }
 }
