@@ -1,5 +1,6 @@
-package org.anoncraft.plugintesta;
+package org.anoncraft.plugintesta.NPCInteraction;
 
+import org.anoncraft.plugintesta.Teleport.TeleportFunctions;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
@@ -13,9 +14,6 @@ import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
 import java.util.Comparator;
 import java.util.Optional;
 
@@ -73,7 +71,7 @@ public class NPCListener implements Listener {
         event.setCancelled(true);
 
         // transfer to server
-        sendPlayerToServer(player, targetServer);
+        TeleportFunctions.sendPlayerToServer(plugin, player, targetServer);
         player.sendMessage("§aTransferring you to §e" + targetServer + "§a...");
     }
 
@@ -128,19 +126,5 @@ public class NPCListener implements Listener {
         return angle;
     }
 
-    private void sendPlayerToServer(Player player, String server) {
-        try {
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            DataOutputStream out = new DataOutputStream(bos);
 
-            out.writeUTF("Connect");
-            out.writeUTF(server);
-
-            player.sendPluginMessage(plugin, "BungeeCord", bos.toByteArray());
-            out.close();
-
-        } catch (IOException e) {
-            plugin.getLogger().warning("Failed to send Velocity transfer message: " + e.getMessage());
-        }
-    }
 }

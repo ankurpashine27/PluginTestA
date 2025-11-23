@@ -1,5 +1,7 @@
 package org.anoncraft.plugintesta;
 
+import org.anoncraft.plugintesta.NPCInteraction.NPCCustomCommands;
+import org.anoncraft.plugintesta.NPCInteraction.NPCListener;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -33,7 +35,7 @@ public final class PluginTestA extends JavaPlugin {
         );
 
         //Command to remove mannequin NPCs
-        getCommand("removenpc").setExecutor(new CustomCommands());
+        getCommand("removenpc").setExecutor(new NPCCustomCommands());
 
     }
 

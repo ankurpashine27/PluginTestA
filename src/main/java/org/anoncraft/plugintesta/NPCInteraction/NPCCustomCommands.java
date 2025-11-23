@@ -1,4 +1,4 @@
-package org.anoncraft.plugintesta;
+package org.anoncraft.plugintesta.NPCInteraction;
 
 import org.bukkit.NamespacedKey;
 import org.bukkit.command.Command;
@@ -7,7 +7,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
-public class CustomCommands implements CommandExecutor {
+public class NPCCustomCommands implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
